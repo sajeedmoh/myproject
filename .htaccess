@@ -1,0 +1,73 @@
+Options -Indexes
+
+# Insert filter
+# SetOutputFilter DEFLATE
+
+# Netscape 4.x has some problems...
+# BrowserMatch ^Mozilla/4 gzip-only-text/html
+
+# Netscape 4.06-4.08 have some more problems
+# BrowserMatch ^Mozilla/4\.0[678] no-gzip
+
+# MSIE masquerades as Netscape, but it is fine
+# BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+# Don't compress images
+# SetEnvIfNoCase Request_URI \
+# \.(?:gif|jpe?g|png)$ no-gzip dont-vary
+
+# Make sure proxies don't deliver the wrong content
+# Header append Vary User-Agent env=!dont-vary
+
+# CORS
+# http://stackoverflow.com/questions/14003332/access-control-allow-origin-wildcard-subdomains-ports-and-protocols/27990162#27990162
+SetEnvIf Origin ^(https?://.+\.campnetwork\.com(?::\d{1,5})?)$   CORS_ALLOW_ORIGIN=$1
+Header set Access-Control-Allow-Origin  %{CORS_ALLOW_ORIGIN}e   env=CORS_ALLOW_ORIGIN
+
+RewriteEngine on
+
+# Maintenance
+ErrorDocument 503 /maintenance.html
+# RewriteCond %{REMOTE_ADDR} !^127\.0\.0\.1
+# RewriteCond %{SCRIPT_FILENAME} !maintenance.html
+# RewriteCond %{REQUEST_URI} !\.(jpeg|jpg|png|css|js)$
+# RewriteRule ^.*$ /maintenance.html [R=503,NC,L]
+
+# Don't allow http://campnetwork.com
+RewriteCond %{HTTP_HOST} ^campnetwork.com
+RewriteRule ^(.*)$ http://www.campnetwork.com/$1 [R=301,L]
+
+#Redirect blog sub folder to weebly
+RewriteCond %{REQUEST_URI} ^/blog/?(.*)$ [NC]
+RewriteRule ^(.*) http://blog.campnetwork.com/%1 [R=301,NC,L]
+
+# Subdomains for Registration Process
+# RewriteRule  ^Register/([0-9]+) Register/Register.php?camp_id=$1 [NC,L]
+
+# Old way for Subdomains for Registration Process
+# RewriteCond %{REQUEST_URI} ^Register/([0-9]+)
+RewriteRule  ^Register/([0-9]+) http://www.campnetwork.com/Register/Register.php?camp_id=$1 [NC,P,L]
+# RewriteRule  ^Register/([0-9]+) http://localhost/Register/Register.php?camp_id=$1 [P,L]
+
+# Event details short URLs
+# RewriteRule ^camps/([0-9]+)/? /Events/EventDetails.php?eventId=$1 [NC,L]
+
+# Subdomains for Demo
+# RewriteCond %{HTTP_HOST} ^campdemo\.campnetwork\.com/?$ [NC]
+# RewriteRule ^(.*)$ http://www.campnetwork.com/camps/117923/camp-network-demo.php [PT,L]
+
+# RewriteCond %{HTTP_HOST} .
+# RewriteCond %{HTTP_HOST} !^www\.campnetwork\.com [NC]
+# RewriteRule (.*) http://www.campnetwork.com/$1 [R=301,L]
+
+# RedirectMatch 301 ^/camps/$ http://www.campnetwork.com/camp_search.php
+
+## Don't allow direct accss to GitHub log
+RedirectMatch 403 ^/Github.webhook.log$
+RedirectMatch 403 ^/README.md$
+
+ErrorDocument 404 /404.php
+ErrorDocument 403 /404.php
+
+# RewriteCond %{HTTP_HOST} ^campdemo.campnetwork.com/register [NC]
+# RewriteRule (campdemo)(/.*|$)
+# $1.campnetwork.com//camps/117923/camp-network-demo.php [R=302,L]
